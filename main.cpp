@@ -255,13 +255,13 @@ public:
             int old_rank = -1, new_rank = -1;
             for (int i = 0; i < sorted_teams.size(); i++) {
                 if (sorted_teams[i].first == target_team) {
-                    old_rank = i + 1;
+                    old_rank = i;
                     break;
                 }
             }
             for (int i = 0; i < new_sorted.size(); i++) {
                 if (new_sorted[i].first == target_team) {
-                    new_rank = i + 1;
+                    new_rank = i;
                     break;
                 }
             }
@@ -270,9 +270,9 @@ public:
                 // Find which team was displaced
                 string displaced_team;
                 if (new_rank < old_rank) {  // Moved up
-                    displaced_team = sorted_teams[new_rank - 1].first;
+                    displaced_team = sorted_teams[new_rank].first;
                 } else {  // Moved down (shouldn't happen in this algorithm)
-                    displaced_team = sorted_teams[new_rank - 1].first;
+                    displaced_team = sorted_teams[new_rank].first;
                 }
 
                 ranking_changes.push_back({target_team, displaced_team});
@@ -487,7 +487,7 @@ int main() {
             // Parse WHERE PROBLEM=... AND STATUS=...
             size_t prob_start = line.find("PROBLEM=") + 8;
             size_t prob_end = line.find(" AND STATUS=");
-            size_t status_start = prob_end + 13;
+            size_t status_start = prob_end + 12;  // Length of " AND STATUS="
 
             string prob_name = line.substr(prob_start, prob_end - prob_start);
             string stat = line.substr(status_start);
