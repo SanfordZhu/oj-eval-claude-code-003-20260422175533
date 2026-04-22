@@ -31,6 +31,7 @@ struct ProblemStatus {
     int solve_time = -1;  // -1 means not solved
     int frozen_submissions = 0;
     bool is_frozen = false;
+    vector<pair<JudgeStatus, int>> frozen_submission_details;  // status and time
 };
 
 struct TeamInfo {
@@ -174,8 +175,8 @@ public:
             if (is_frozen && prob_status.solve_time == -1) {
                 prob_status.is_frozen = true;
                 prob_status.frozen_submissions++;
-                // Still count incorrect attempts for frozen submissions
-                prob_status.incorrect_attempts++;
+                // Store frozen submission details
+                prob_status.frozen_submission_details.push_back({status, time});
             }
         }
     }
@@ -243,16 +244,25 @@ public:
             auto& prob_status = team.problems[target_problem];
 
             // Process frozen submissions
-            int old_incorrect = prob_status.incorrect_attempts;
+            int old_solved = (prob_status.solve_time != -1) ? 1 : 0;
+            int old_penalty = (old_solved) ? (20 * prob_status.incorrect_attempts + prob_status.solve_time) : 0;
 
-            // Count frozen submissions that were wrong
-            // (We need to track this better during submission)
-            // For now, assume all frozen submissions were wrong
-            prob_status.incorrect_attempts += prob_status.frozen_submissions;
+            // Re-process all frozen submissions
+            for (const auto& [status, time] : prob_status.frozen_submission_details) {
+                if (prob_status.solve_time == -1) {
+                    if (status == JudgeStatus::Accepted) {
+                        prob_status.solve_time = time;
+                    } else {
+                        prob_status.incorrect_attempts++;
+                    }
+                }
+            }
+
             prob_status.is_frozen = false;
             prob_status.frozen_submissions = 0;
+            prob_status.frozen_submission_details.clear();
 
-            // Check if this caused a ranking change
+            // Temporarily update totals to check for ranking change
             team.updateTotals();
             vector<pair<string, TeamInfo>> new_sorted = getSortedTeams();
 
