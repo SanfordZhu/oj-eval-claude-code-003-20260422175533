@@ -157,8 +157,13 @@ public:
         if (prob_status.solve_time == -1) {
             if (status == JudgeStatus::Accepted) {
                 prob_status.solve_time = time;
-                // If accepted while frozen, problem is no longer frozen
-                prob_status.is_frozen = false;
+                // If accepted while frozen, process frozen submissions
+                if (prob_status.is_frozen) {
+                    prob_status.is_frozen = false;
+                    // All frozen submissions were incorrect
+                    prob_status.incorrect_attempts += prob_status.frozen_submissions;
+                    prob_status.frozen_submissions = 0;
+                }
             } else {
                 if (!is_frozen) {
                     prob_status.incorrect_attempts++;
